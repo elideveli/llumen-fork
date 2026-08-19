@@ -50,7 +50,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/pinkfuwa/llumen
+          images: ghcr.io/elideveli/llumen-fork
           tags: type=raw,value=nightly
 
       - name: Build and push nightly image
