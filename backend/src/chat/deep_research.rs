@@ -95,10 +95,11 @@ impl DeepAgent {
 
         let system_prompt = self.ctx.prompt.render_prompt_enhancer(self.get_locale())?;
 
-        let messages = vec![
-            openrouter::Message::System(system_prompt),
-            openrouter::Message::User(original_prompt.to_string()),
-        ];
+        let mut messages = Vec::new();
+        if !system_prompt.trim().is_empty() {
+            messages.push(openrouter::Message::System(system_prompt));
+        }
+        messages.push(openrouter::Message::User(original_prompt.to_string()));
 
         let enhanced_text = {
             let model = openrouter::ModelBuilder::from_model(&self.input.model).build();
@@ -139,10 +140,11 @@ impl DeepAgent {
     async fn plan(&mut self, sink: &mut impl TokenSink) -> Result<()> {
         let system_prompt = self.ctx.prompt.render_planner(self.get_locale())?;
 
-        let messages = vec![
-            openrouter::Message::System(system_prompt),
-            openrouter::Message::User(self.enhanced_prompt.clone()),
-        ];
+        let mut messages = Vec::new();
+        if !system_prompt.trim().is_empty() {
+            messages.push(openrouter::Message::System(system_prompt));
+        }
+        messages.push(openrouter::Message::User(self.enhanced_prompt.clone()));
 
         let model = openrouter::ModelBuilder::from_model(&self.input.model).build();
 
@@ -227,11 +229,14 @@ impl DeepAgent {
 
         let mut progress = Vec::new();
 
-        let mut messages = vec![
-            openrouter::Message::System(system_prompt),
-            openrouter::Message::System(step_system_message),
-            openrouter::Message::User(step_input),
-        ];
+        let mut messages = Vec::new();
+        if !system_prompt.trim().is_empty() {
+            messages.push(openrouter::Message::System(system_prompt));
+        }
+        if !step_system_message.trim().is_empty() {
+            messages.push(openrouter::Message::System(step_system_message));
+        }
+        messages.push(openrouter::Message::User(step_input));
 
         sink.add_token(Token::DeepStepStart(step_idx as i32));
 
@@ -338,10 +343,11 @@ impl DeepAgent {
         let system_prompt = self.ctx.prompt.render_reporter(&self.get_locale())?;
         let report_input = self.ctx.prompt.render_report_input(&report_input_ctx)?;
 
-        let messages = vec![
-            openrouter::Message::System(system_prompt),
-            openrouter::Message::User(report_input),
-        ];
+        let mut messages = Vec::new();
+        if !system_prompt.trim().is_empty() {
+            messages.push(openrouter::Message::System(system_prompt));
+        }
+        messages.push(openrouter::Message::User(report_input));
 
         let model = openrouter::ModelBuilder::from_model(&self.input.model).build();
         let option = openrouter::CompletionOption::builder()

@@ -800,6 +800,9 @@ impl CompletionSession {
     async fn generate_title(&self) -> Option<String> {
         let locale = self.locale();
         let system = self.ctx.prompt.render_title_generation(locale).ok()?;
+        if system.trim().is_empty() {
+            return None;
+        }
 
         let user_msg = match self.latest_user_message() {
             Some(msg) => msg.to_string(),
@@ -830,19 +833,17 @@ impl CompletionSession {
 
         let assistant_truncated = assistant_text.chars().take(300).collect::<String>();
 
-        let messages = vec![
-            openrouter::Message::System(system),
-            openrouter::Message::User(user_msg),
-            openrouter::Message::Assistant {
-                content: assistant_truncated,
-                annotations: None,
-                reasoning_details: None,
-                files: Vec::new(),
-            },
-            openrouter::Message::User(
-                "Please generate a concise title, starting with a emoji".to_string(),
-            ),
-        ];
+        let mut messages = Vec::new();
+        if !system.trim().is_empty() {
+            messages.push(openrouter::Message::System(system));
+        }
+        messages.push(openrouter::Message::User(user_msg));
+        messages.push(openrouter::Message::Assistant {
+            content: assistant_truncated,
+            annotations: None,
+            reasoning_details: None,
+            files: Vec::new(),
+        });
 
         let mut model = self.openrouter_model();
         if let Some(ref task_model_id) = self.model.config.task_model_id {
