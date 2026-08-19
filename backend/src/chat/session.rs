@@ -268,7 +268,10 @@ impl CompletionSession {
             )?,
         };
 
-        let mut messages = vec![openrouter::Message::System(system_prompt)];
+        let mut messages = Vec::new();
+        if !system_prompt.trim().is_empty() {
+            messages.push(openrouter::Message::System(system_prompt));
+        }
 
         // 2. Previous messages (from DB → openrouter format)
         let history_msgs =
